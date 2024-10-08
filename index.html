@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAKTI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Button Styling */
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            background-color: whitesmoke;
+            color: black;
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: white;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 50px 0;
+        }
+
+        /* Center content and add padding */
+        .content {
+            text-align: center;
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 800px;
+        }
+
+        /* Big logo styling */
+        .big-logo {
+            display: block;
+            margin: 30px auto;
+            max-width: 200px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html"><img src="https://www.sakti.edu.my/images/logo_sakti_WARNA.png" alt="Logo" class="logo"></a></li>
+                <li><a href="about.html">Info</a></li>
+                <li><a href="contact.html">Hubungi Kami</a></li>
+                <li><a href="profile.html">Profil</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Big Logo Section -->
+    <section class="hero">
+        <img src="https://www.sakti.edu.my/images/logo_sakti_WARNA.png" alt="Big Logo" class="big-logo">
+        <section class="texback">
+            <h1>Selamat Datang ke MySAKTI</h1>
+            <p>Legasi anda bermula di sini.</p>
+        </section>
+        <div class="button-container">
+            <a href="#" class="btn" id="get-started-btn">Get Started</a>
+        </div>
+    </section>
+
+    <!-- Content Section -->
+    <section class="content">
+        <h2>Semak bakat dan minat anda.</h2>
+        <p>Semak semua yang berkaitan dengan anak murid anda, hanya menerusi kad E-Wallet sahaja.</p>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 MySAKTI. SAKTI Menerajui.</p>
+    </footer>
+
+    <script>
+        // Check login status (This should be replaced by actual login check logic)
+        var isLoggedIn = true; // Change to true to test the dashboard redirect
+
+        document.getElementById('get-started-btn').addEventListener('click', function () {
+            if (isLoggedIn) {
+                window.location.href = 'dashboard.html';
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+    
+</body>
+</html>
