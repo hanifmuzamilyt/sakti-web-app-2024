@@ -91,24 +91,29 @@
 
         .search-bar {
             left: 50%;
-            max-width: 500px;
+            max-width: 34%;
             margin: 0px auto;
             text-align: center;
         }
 
         #results {
             position: absolute; /* Membuat hasil carian sebagai overlay */
-            top: 130px; /* Sesuaikan kedudukan mengikut keperluan */
+            top: 120px; /* Sesuaikan kedudukan mengikut keperluan */
             left: 50%;
             transform: translateX(-50%);
             background-color: white; /* Warna latar belakang untuk hasil carian */
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Bayangan untuk overlay */
             z-index: 1000; /* Pastikan hasil carian di atas elemen lain */
-            display: none;
+            display: block;
             flex-direction: column;
-            max-width: 400px; /* Lebar maksimum hasil carian */
+            max-width: 500px; /* Lebar maksimum hasil carian */
+            width: 70%;
             border-radius: 8px; /* Bulatkan sudut */
             padding: 10px; /* Ruang dalam untuk hasil carian */
+            visibility: visible;
+            height: auto;
+            overflow: visible;
+            color:#333;
         }
 
         .user-card {
@@ -363,6 +368,52 @@
             document.getElementById(sectionId).classList.add('active');
         };
 
+        async function searchUsers() {
+            const input = document.getElementById('search-input').value.toLowerCase();
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            if (input.length === 0) return;
+
+            const usersRef = collection(db, 'users');
+            const q = query(usersRef, where('username', '>=', input), where('username', '<=', input + '\uf8ff'));
+
+            try {
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    resultsDiv.innerHTML = "<p>No results found.</p>";
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const user = doc.data();
+                    const uid = doc.id; // Get the UID from the document ID
+
+                    // Create the user card element
+                    const userElement = document.createElement('div');
+                    userElement.className = 'user-card';
+
+                    userElement.innerHTML = `
+                        <div class="user-details">
+                            <h3>${user.name || 'No Name Available'}</h3>
+                            <p>Username: ${user.username || 'N/A'}</p>
+                            <p>Class: ${user.class || 'N/A'}</p>
+                            <p>House: ${user.house || 'N/A'}</p>
+                            <p>Position: ${user.position || 'N/A'}</p>
+                            <button class="dashboard-link" onclick="window.location.href='user_dashboard.html?user=${uid}'">View Dashboard</button>
+                        </div>
+                    `;
+
+                    resultsDiv.appendChild(userElement);
+                });
+            } catch (error) {
+                console.error("Error searching users: ", error);
+                alert("Error searching users. Please check the console for more details.");
+                resultsDiv.innerHTML = "<p>Error retrieving results. Please try again.</p>";
+            }
+        }
+
         // Function to load user's media files
         async function loadUserMedia(uid) { // Accept uid as parameter
             const mediaListContainer = document.getElementById('media-list');
@@ -420,13 +471,49 @@
         // Call loadUserDashboard when the page is fully loaded
         window.onload = loadUserDashboard;
     </script>
+    <script type="module">
+        window.toggleNavPane = function () {
+                const sidebar = document.getElementById('sidebarz');
+    
+                // Toggle the 'active' class to open/close the sidebar
+                sidebar.classList.toggle('active');
+    
+                // Optional: If you want to add a class to the body to prevent scrolling when the sidebar is open
+                
+            };
+        </script>
 </head>
 
 <body>
     <header>
+        <!-- Sidebar Navigation Pane -->
+        <div class="sidebarz" id="sidebarz">
+            <span onclick="toggleNavPane()" class="nav-toggle-icon"><img src="https://www.sakti.edu.my/images/logo_sakti_WARNA.png" alt="Logo" class="logo"></span>
+            <h1>SAKTI Website</h1>
+            <a href="carta-guru.html">Carta Guru</a>
+            <a href="carta-murid.html">Carta Murid</a>
+            <a href="batches.html">Batch</a>
+            <a href="hasil-murid.html">Hasil Murid</a>
+            <a href="jualan.html">Jualan</a>
+            <a href="feedback.html">Maklum Balas</a>
+            <p>Events:</p>
+            <div class="website-linkss">
+                <div class="thumbnail-containers">
+                    <!-- Tambah pautan thumbnail di sini -->
+                    <a href="https://ains.moe.gov.my/" target="_blank" class="thumbnail-links">
+                        <img src="https://i.ytimg.com/vi/Qv23UgVaBCQ/maxresdefault.jpg" alt="SAKTI Website">
+                        AINS
+                    </a>
+                    <a href="https://www.bookxcess.com" target="_blank" class="thumbnail-links">
+                        <img src="https://i.newscdn.net/publisher-c1a3f893382d2b2f8a9aa22a654d9c97/2020/08/52e1eed45dca57be16a4bab054b03e95.jpg=s600" alt="SAKTI Website">
+                        BookXcess
+                    </a>
+                </div>
+            </div>
+        </div>
         <nav>
             <ul>
-                <li><a href="index.html"><img src="https://www.sakti.edu.my/images/logo_sakti_WARNA.png" alt="Logo" class="logo"></a></li>
+                <span class="nav-toggle-icon" onclick="toggleNavPane()">&#9776;</span>
                 <li><a href="dashboard.html">Utama</a></li>
                 <li><a href="about.html">Info</a></li>
                 <li><a href="contact.html">Hubungi Kami</a></li>

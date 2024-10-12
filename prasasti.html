@@ -21,8 +21,8 @@
         }
 
         .flowchart-box {
-            background: #283593;
-            color: #ffd700;
+            background: #333;
+            color: #fff;
             padding: 20px;
             border-radius: 12px;
             text-align: center;
@@ -34,11 +34,15 @@
             margin: 20px 10px; /* Adjust margin for better spacing */
         }
 
+        .flowchart-box:hover {
+            transform: scale(1.1);
+        }
+
         .flowchart-box small {
             display: block;
             margin-top: 8px;
             font-size: 10px;
-            color: #ffd700;
+            color: #fff;
         }
 
 
@@ -58,7 +62,7 @@
         .arrow-right .line {
             height: 4px;
             width: 30px; /* Adjust line length */
-            background-color: #283593; /* Line color */
+            background-color: #333; /* Line color */
         }
 
         .arrow-right .triangle {
@@ -66,7 +70,7 @@
             height: 0; 
             border-top: 10px solid transparent;
             border-bottom: 10px solid transparent;
-            border-left: 15px solid #283593; /* Triangle color */
+            border-left: 15px solid #333; /* Triangle color */
             margin-left: -2px; /* Adjust spacing between line and arrow */
         }
 
@@ -74,7 +78,7 @@
         .hero {
             text-align: center;
             padding: 30px;
-            background-color: #283593;
+            background-color: #333;
             margin: 20px auto;
             color: #ffffff;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
@@ -82,24 +86,24 @@
 
         .hero h2 {
             font-size: 36px;
-            color: #ffd700;
+            color: #fff;
             margin-bottom: 10px;
         }
 
         .hero h1 {
             font-size: 36px;
-            color: #283593;
+            color: #333;
             margin-bottom: 10px;
         }
 
         .logo-image {
             width: 180px;
             margin-bottom: 20px;
-            border-radius: 10px;
-            border: 5px solid #ffd700; /* Adding a 5px yellow border around the logo */
+            border-radius: 10px; 
             padding: 0px; /* Optional: Add padding to create space between the border and logo */
-            box-shadow: 0 0 15px #ffd700; /* Multi-layered yellow glow */
+            box-shadow: 0 0 15px #fff; /* Multi-layered yellow glow */
             transition: 0.3s ease; /* Smooth transition for glow */
+            margin-top: 4%
         }
 
         .leadership-section {
@@ -107,21 +111,21 @@
             padding: 20px;
             margin: 20px 0;
             border-radius: 12px;
-            background-color: #283593;
-            color: #ffd700;
+            background-color: #333;
+            color: #fff;
             text-align: center;
-            border: solid 5px #ffd700;
+            border: solid 5px #fff;
             box-shadow: rgba(0, 0, 0, 0.1)
         }
 
         .flowchart-title {
             font-size: 28px; /* Adjust the font size */
-            color: #283593; /* Match with flowchart box color */
+            color: #333; /* Match with flowchart box color */
             text-align: center;
             width: 100%; /* Take full width of the container */
             margin-bottom: 20px; /* Space below the title */
             padding-bottom: 10px; /* Optional: Additional padding */
-            border-bottom: 2px solid #283593; /* Optional: Adds a border below the title */
+            border-bottom: 2px solid #333; /* Optional: Adds a border below the title */
             font-weight: bold; /* Make the title stand out */
         }
 
@@ -136,15 +140,51 @@
         }
 
         .leadership-section a {
-            color:#d1b200
+            color:#fff
         }
     </style>
+<script type="module">
+    window.toggleNavPane = function () {
+            const sidebar = document.getElementById('sidebarz');
+
+            // Toggle the 'active' class to open/close the sidebar
+            sidebar.classList.toggle('active');
+
+            // Optional: If you want to add a class to the body to prevent scrolling when the sidebar is open
+            
+        };
+    </script>
 </head>
 <body>
     <header>
+        <!-- Sidebar Navigation Pane -->
+        <div class="sidebarz" id="sidebarz">
+            <span onclick="toggleNavPane()" class="nav-toggle-icon"><img src="https://www.sakti.edu.my/images/logo_sakti_WARNA.png" alt="Logo" class="logo"></span>
+            <h1>SAKTI Website</h1>
+            <a href="carta-guru.html">Carta Guru</a>
+            <a href="carta-murid.html">Carta Murid</a>
+            <a href="batches.html">Batch</a>
+            <a href="hasil-murid.html">Hasil Murid</a>
+            <a href="jualan.html">Jualan</a>
+            <a href="feedback.html">Maklum Balas</a>
+            <p>Events:</p>
+            <div class="website-linkss">
+                <div class="thumbnail-containers">
+                    <!-- Tambah pautan thumbnail di sini -->
+                    <a href="https://ains.moe.gov.my/" target="_blank" class="thumbnail-links">
+                        <img src="https://i.ytimg.com/vi/Qv23UgVaBCQ/maxresdefault.jpg" alt="SAKTI Website">
+                        AINS
+                    </a>
+                    <a href="https://www.bookxcess.com" target="_blank" class="thumbnail-links">
+                        <img src="https://i.newscdn.net/publisher-c1a3f893382d2b2f8a9aa22a654d9c97/2020/08/52e1eed45dca57be16a4bab054b03e95.jpg=s600" alt="SAKTI Website">
+                        BookXcess
+                    </a>
+                </div>
+            </div>
+        </div>
         <nav>
             <ul>
-                <li><a href="index.html"><img src="https://www.sakti.edu.my/images/logo_sakti_WARNA.png" alt="Logo" class="logo"></a></li>
+                <span class="nav-toggle-icon" onclick="toggleNavPane()">&#9776;</span>
                 <li><a href="dashboard.html">Utama</a></li>
                 <li><a href="about.html">Info</a></li>
                 <li><a href="contact.html">Hubungi Kami</a></li>
@@ -159,8 +199,8 @@
 
         <div class="leadership-section">
             <h2>Persatuan Alumni SAKTI (PRASASTI)</h2>
-            <p><strong>Instagram:</strong> <a href="https://www.instagram.com/prasasti_official/">@prasasti_official</a></p>
-            <p><strong>Facebook:</strong> <a href="https://www.facebook.com/prasasti.sakti.org.my/">@Prasasti SAKTI</a></p>
+            <p><strong>Instagram:</strong> <a href="https://www.instagram.com/prasasti_official/" target="_blank">@prasasti_official</a></p>
+            <p><strong>Facebook:</strong> <a href="https://www.facebook.com/prasasti.sakti.org.my/" target="_blank">@Prasasti SAKTI</a></p>
         </div>
         <div class="flowchart-container">
             <h1 class="flowchart-title">BATCH PRASASTI</h1>

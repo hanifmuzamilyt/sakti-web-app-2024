@@ -48,10 +48,19 @@
         .dashboard-link:hover {
             background-color: #0056b3;
         }
+
+        
+        .profile-pic{
+            transition: transform 0.3s ease;
+        }
+        .profile-pic:hover{
+            transform: scale(1.1);
+        }
+
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, addDoc, serverTimestamp, updateDoc, arrayUnion, collection, getDocs, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, addDoc, serverTimestamp, updateDoc, arrayUnion, collection, getDocs, query, where, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
         // Your Firebase configuration
@@ -100,51 +109,85 @@
             debounceTimer = setTimeout(searchUsers, 300); // Wait 300ms before triggering searchUsers
         };
 
+        window.toggleNavPane = function () {
+            const sidebar = document.getElementById('sidebarz');
+
+            // Toggle the 'active' class to open/close the sidebar
+            sidebar.classList.toggle('active');
+
+            // Optional: If you want to add a class to the body to prevent scrolling when the sidebar is open
+        };
+
         async function searchUsers() {
             const input = document.getElementById('search-input').value.toLowerCase();
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '';
 
-            if (input.length === 0) return;
+            if (input.length === 0) {
+                resultsDiv.innerHTML = '';
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            resultsDiv.style.display = 'block';
 
             const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('username', '>=', input), where('username', '<=', input + '\uf8ff'));
+            
+            // Construct two separate queries for name and username
+            const usernameQuery = query(usersRef, where('username', '>=', input), where('username', '<=', input + '\uf8ff'));
+            const nameQuery = query(usersRef, where('name', '>=', input), where('name', '<=', input + '\uf8ff'));
 
             try {
-                const querySnapshot = await getDocs(q);
+                const [usernameSnapshot, nameSnapshot] = await Promise.all([
+                    getDocs(usernameQuery),
+                    getDocs(nameQuery)
+                ]);
 
-                if (querySnapshot.empty) {
-                    resultsDiv.innerHTML = "<p>No results found.</p>";
-                    return;
+                const combinedResults = new Set();
+
+                // Helper function to handle query snapshots
+                function processSnapshot(snapshot) {
+                    snapshot.forEach((doc) => {
+                        const user = doc.data();
+                        const uid = doc.id; // Get the UID from the document ID
+
+                        if (!combinedResults.has(uid)) { // Avoid duplicate entries
+                            combinedResults.add(uid);
+
+                            // Create the user card element
+                            const userElement = document.createElement('div');
+                            userElement.className = 'user-card';
+
+                            userElement.innerHTML = `
+                                <div class="user-details">
+                                    <h3>${user.name || 'No Name Available'}</h3>
+                                    <p>Username: ${user.username || 'N/A'}</p>
+                                    <p>Class: ${user.class || 'N/A'}</p>
+                                    <p>House: ${user.house || 'N/A'}</p>
+                                    <p>Position: ${user.position || 'N/A'}</p>
+                                    <button class="dashboard-link" onclick="window.location.href='user_dashboard.html?user=${uid}'">View Dashboard</button>
+                                </div>
+                            `;
+
+                            resultsDiv.appendChild(userElement);
+                        }
+                    });
                 }
 
-                querySnapshot.forEach((doc) => {
-                    const user = doc.data();
-                    const uid = doc.id; // Get the UID from the document ID
+                // Process both query snapshots
+                processSnapshot(usernameSnapshot);
+                processSnapshot(nameSnapshot);
 
-                    // Create the user card element
-                    const userElement = document.createElement('div');
-                    userElement.className = 'user-card';
+                if (combinedResults.size === 0) {
+                    resultsDiv.innerHTML = "<p>No results found.</p>";
+                }
 
-                    userElement.innerHTML = `
-                        <div class="user-details">
-                            <h3>${user.name || 'No Name Available'}</h3>
-                            <p>Username: ${user.username || 'N/A'}</p>
-                            <p>Class: ${user.class || 'N/A'}</p>
-                            <p>House: ${user.house || 'N/A'}</p>
-                            <p>Position: ${user.position || 'N/A'}</p>
-                            <button class="dashboard-link" onclick="window.location.href='user_dashboard.html?user=${uid}'">View Dashboard</button>
-                        </div>
-                    `;
-
-                    resultsDiv.appendChild(userElement);
-                });
             } catch (error) {
                 console.error("Error searching users: ", error);
                 alert("Error searching users. Please check the console for more details.");
                 resultsDiv.innerHTML = "<p>Error retrieving results. Please try again.</p>";
             }
         }
+
         
         // Function to load user profile from Firestore
         async function loadUserProfile(uid) {
@@ -213,6 +256,8 @@
             }
         };
 
+        
+
         // Function to load comments
         window.loadComments = async function() {
             console.log("Loading comments...");
@@ -223,8 +268,10 @@
             const user = auth.currentUser; // Get the current user
 
             try {
-                // Fetch comments from Firestore
-                const querySnapshot = await getDocs(collection(db, 'comments'));
+                // Fetch comments from Firestore, ordered by 'createdAt' field
+                const commentsQuery = query(collection(db, 'comments'), orderBy('createdAt', 'asc')); // Change 'desc' to 'asc' for oldest to newest
+                const querySnapshot = await getDocs(commentsQuery);
+
                 querySnapshot.forEach(doc => {
                     const commentData = doc.data();
                     const commentId = doc.id; // Get the comment ID
@@ -378,10 +425,36 @@
 </head>
 
 <body>
+    
     <header>
+        <!-- Sidebar Navigation Pane -->
+        <div class="sidebarz" id="sidebarz">
+            <span onclick="toggleNavPane()" class="nav-toggle-icon"><img src="https://www.sakti.edu.my/images/logo_sakti_WARNA.png" alt="Logo" class="logo"></span>
+            <h1>SAKTI Website</h1>
+            <a href="carta-guru.html">Carta Guru</a>
+            <a href="carta-murid.html">Carta Murid</a>
+            <a href="batches.html">Batch</a>
+            <a href="hasil-murid.html">Hasil Murid</a>
+            <a href="jualan.html">Jualan</a>
+            <a href="feedback.html">Maklum Balas</a>
+            <p>Events:</p>
+            <div class="website-linkss">
+                <div class="thumbnail-containers">
+                    <!-- Tambah pautan thumbnail di sini -->
+                    <a href="https://ains.moe.gov.my/" target="_blank" class="thumbnail-links">
+                        <img src="https://i.ytimg.com/vi/Qv23UgVaBCQ/maxresdefault.jpg" alt="SAKTI Website">
+                        AINS
+                    </a>
+                    <a href="https://www.bookxcess.com" target="_blank" class="thumbnail-links">
+                        <img src="https://i.newscdn.net/publisher-c1a3f893382d2b2f8a9aa22a654d9c97/2020/08/52e1eed45dca57be16a4bab054b03e95.jpg=s600" alt="SAKTI Website">
+                        BookXcess
+                    </a>
+                </div>
+            </div>
+        </div>
         <nav>
             <ul>
-                <li><a href="index.html"><img src="https://www.sakti.edu.my/images/logo_sakti_WARNA.png" alt="Logo" class="logo"></a></li>
+                <span class="nav-toggle-icon" onclick="toggleNavPane()">&#9776;</span>
                 <li><a href="dashboard.html">Utama</a></li>
                 <li><a href="about.html">Info</a></li>
                 <li><a href="contact.html">Hubungi Kami</a></li>
@@ -391,91 +464,72 @@
         </nav>
     </header>
 
-   
+    
 
-
-    <section class="hero">
-        <div class="search-bar">
-            <input type="text" id="search-input" oninput="searchUsers()" placeholder="Cari pengguna dengan nama atau username...">
-        </div>
-        <div id="results"></div>
-        <section class="texback">
-            <h2>Selamat Datang, <span id="header-profile-name">User</span></h2>
-            <p>Anda telah berjaya log masuk!</p>
+        <section class="hero">
+            <div class="search-bar">
+                <input type="text" id="search-input" oninput="searchUsers()" placeholder="Cari pengguna dengan nama atau username...">
+            </div>
+            <div id="results"></div>
+            <section class="texback">
+                <h2>Selamat Datang, <span id="header-profile-name">User</span></h2>
+                <p>Anda telah berjaya log masuk!</p>
+                
+            </section>
             
-        </section>
+
+            <ul class="category-nav">
+                <li><a href="#" class="active" onclick="showSection('profile')">Maklumat Diri</a></li>
+                <li><a href="#" onclick="showSection('media')">Media</a></li>
+                <li><a href="#" onclick="showSection('community')">Ruang Komuniti</a></li>
+            </ul>
+
+        <!-- Profile Section -->
+        <div id="profile" class="content-section active">
+            <h2>Maklumat Diri</h2>
+            <div class="profile-info">
+                <a href="profile.html"><img id="profile-picture" src="default-profile.png" alt="Profile Picture" class="profile-pic"></a>
+                <p><strong>Nama Penuh:</strong> <span id="profile-name"></span></p>
+                <p><strong>Emel:</strong> <span id="profile-email">Tiada</span></p>
+                <p><strong>Kelas:</strong> <span id="display-class">Tiada</span></p>
+                <p><strong>Rumah Sukan:</strong> <span id="display-house">Tiada</span></p>
+                <p><strong>Jawatan:</strong> <span id="display-position">Tiada</span></p>
+            </div>
+        </div>
+
+        <!-- Media Section -->
+        <div id="media" class="content-section">
+
+
+            <section class="media-section">
+                <h3>Upload Your Media</h3>
+                <form class="media-upload-form" id="media-upload-form">
+                    <input type="url" id="media-url" placeholder="Enter media URL (e.g., YouTube)" required>
+                    <input type="text" id="media-caption" placeholder="Enter caption (optional)">
+                    <button type="submit">Upload</button>
+                </form>
+                <h3>My Uploaded Media</h3>
+                <ul id="media-list" class="media-list"></ul>
+            </section>
+        </div>
+        
+        <div id="community" class="content-section">
+            <h2>Ruang Komuniti</h2>
+            <div id="commentsContainer">
+            </div>
+            <textarea id="commentInput" placeholder="Tinggalkan komen..."></textarea>
+            <button onclick="postComment()">Post Comment</button>
+        </div>
+            
         
 
-        <ul class="category-nav">
-            <li><a href="#" class="active" onclick="showSection('profile')">Maklumat Diri</a></li>
-            <li><a href="#" onclick="showSection('media')">Media</a></li>
-            <li><a href="#" onclick="showSection('achievements')">Pencapaian</a></li>
-            <li><a href="#" onclick="showSection('community')">Ruang Komuniti</a></li>
-        </ul>
+        
 
-    <!-- Profile Section -->
-    <div id="profile" class="content-section active">
-        <h2>Maklumat Diri</h2>
-        <div class="profile-info">
-            <a href="profile.html"><img id="profile-picture" src="default-profile.png" alt="Profile Picture" class="profile-pic"></a>
-            <p><strong>Nama Penuh:</strong> <span id="profile-name"></span></p>
-            <p><strong>Emel:</strong> <span id="profile-email">Tiada</span></p>
-            <p><strong>Kelas:</strong> <span id="display-class">Tiada</span></p>
-            <p><strong>Rumah Sukan:</strong> <span id="display-house">Tiada</span></p>
-            <p><strong>Jawatan:</strong> <span id="display-position">Tiada</span></p>
-        </div>
-    </div>
-
-    <!-- Media Section -->
-    <div id="media" class="content-section">
-
-
-        <section class="media-section">
-            <h3>Upload Your Media</h3>
-            <form class="media-upload-form" id="media-upload-form">
-                <input type="url" id="media-url" placeholder="Enter media URL (e.g., YouTube)" required>
-                <input type="text" id="media-caption" placeholder="Enter caption (optional)">
-                <button type="submit">Upload</button>
-            </form>
-            <h3>My Uploaded Media</h3>
-            <ul id="media-list" class="media-list"></ul>
-        </section>
-    </div>
-
-    <div id="achievements" class="content-section">
-        <h2>Pencapaian</h2>
-        <div class="achievements">
-            <div class="achievement-card">
-                <h4>Pemuat Naik Pertama!</h4>
-                <p>Anda berjaya memuat naik media pertama anda!</p>
-            </div>
-            <div class="achievement-card">
-                <h4>Interaksi Pertama!</h4>
-                <p>Anda memberi komen pada media pengguna lain.</p>
-            </div>
-            <div class="achievement-card">
-                <h4>Berhubung dengan 3 Rakan</h4>
-                <p>Anda berjaya berinteraksi dengan 3 rakan baru.</p>
-            </div>
-        </div>
-    </div>
-    
-    <div id="community" class="content-section">
-        <h2>Ruang Komuniti</h2>
-        <div id="commentsContainer">
-        </div>
-        <textarea id="commentInput" placeholder="Tinggalkan komen..."></textarea>
-        <button onclick="postComment()">Post Comment</button>
-    </div>
+        <!-- Search Bar for User Dashboards -->
+        
+        <!-- Useful Links Section -->
         
     </section>
-    
-
-    
-
-    <!-- Search Bar for User Dashboards -->
-    
-    <!-- Useful Links Section -->
     <div class="website-links">
         <h3>Useful Links</h3>
         <div class="thumbnail-container">
@@ -502,10 +556,9 @@
             </a>
         </div>
     </div>
-
     
     <footer>
-        <p>&copy; 2024 MySAKTI. SAKTI Menerajui.</p>
+        <p>&copy; 2024 SAKTI Website. SAKTI Menerajui.</p>
     </footer>
 </body>
 
